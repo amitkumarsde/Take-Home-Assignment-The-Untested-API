@@ -6,10 +6,14 @@ const getAll = () => [...tasks];
 
 const findById = (id) => tasks.find((t) => t.id === id);
 
-const getByStatus = (status) => tasks.filter((t) => t.status.includes(status));
+// BUG #3 fix: match the status EXACTLY (===) instead of includes().
+// includes() did a substring match, so a value like 'o' wrongly matched both 'todo' and 'done'.
+const getByStatus = (status) => tasks.filter((t) => t.status === status);
 
 const getPaginated = (page, limit) => {
-  const offset = page * limit;
+  // BUG #2 fix: pages are 1-based. Page 1 must start at index 0.
+  // The old code used `page * limit`, which skipped the first page.
+  const offset = (page - 1) * limit;
   return tasks.slice(offset, offset + limit);
 };
 
@@ -63,15 +67,27 @@ const remove = (id) => {
 const completeTask = (id) => {
   const task = findById(id);
   if (!task) return null;
-
+  
+  // BUG #1 fix: do NOT overwrite priority when completing a task.
+  // The old code forced priority: 'medium', which silently lost the real priority.
   const updated = {
     ...task,
-    priority: 'medium',
     status: 'done',
     completedAt: new Date().toISOString(),
   };
 
   const index = tasks.findIndex((t) => t.id === id);
+  tasks[index] = updated;
+  return updated;
+};
+
+// NEW FEATURE (Day 2, Part C): assign a task to a person.
+// Returns the updated task, or null if the task id does not exist.
+const assignTask = (id, assignee) => {
+  const index = tasks.findIndex((t) => t.id === id);
+  if (index === -1) return null;
+
+  const updated = { ...tasks[index], assignee };
   tasks[index] = updated;
   return updated;
 };
@@ -90,5 +106,6 @@ module.exports = {
   update,
   remove,
   completeTask,
+  assignTask,
   _reset,
 };

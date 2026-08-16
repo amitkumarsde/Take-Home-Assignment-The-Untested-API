@@ -33,4 +33,12 @@ const validateUpdateTask = (body) => {
   return null;
 };
 
-module.exports = { validateCreateTask, validateUpdateTask };
+// NEW FEATURE (Day 2, Part C): validate the body of PATCH /tasks/:id/assign.
+const validateAssign = (body) => {
+  if (!body.assignee || typeof body.assignee !== 'string' || body.assignee.trim() === '') {
+    return 'assignee is required and must be a non-empty string';
+  }
+  return null;
+};
+
+module.exports = { validateCreateTask, validateUpdateTask, validateAssign };
